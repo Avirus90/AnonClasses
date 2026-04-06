@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdiGyan - Demo</title>
+    <style>
+      :root { --bg:#eef1f6; --white:#fff; --blue:#2554d8; --text:#1f2937; }
+      *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+      .app-shell{max-width:980px;margin:0 auto;min-height:calc(100vh - 88px);padding-bottom:120px}
+      .view{display:none}.view.active{display:block}
+      .topbar{background:var(--white);padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:14px;border-bottom:1px solid #dfe4ea}
+      .brand-wrap{display:flex;gap:10px;align-items:center}.brand-icon{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:#2e5ee8;color:#fff}
+      .brand-wrap h1{margin:0;font-size:clamp(1.3rem,4vw,2.1rem)} .top-actions{display:flex;gap:10px;align-items:center}
+      .chip{border:1px solid #d2d9e6;background:#f7f9fc;color:#4a5568;border-radius:999px;padding:10px 16px;font-weight:600}
+      .chip.primary{background:#2e5ee8;color:#fff;border-color:#2e5ee8}.icon-btn{border:0;background:transparent;font-size:1.3rem;cursor:pointer}
+      .hero-banner{margin:22px;border-radius:26px;min-height:220px;background:linear-gradient(120deg,#f5b328,#fff9e2 50%,#7ddcb7);display:flex;align-items:flex-end;padding:22px}
+      .hero-text{color:#fff;font-size:1.1rem;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.35)}
+      .section-head{display:flex;justify-content:space-between;align-items:center;padding:0 22px}.section-head h2{margin:0;font-size:clamp(1.4rem,4vw,2rem)}
+      .section-head a{color:#2957dd;text-decoration:none;font-weight:700}
+      .feature-card{width:min(100%,680px);margin:16px 22px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 2px 9px rgba(0,0,0,.07)}
+      .feature-thumb{min-height:230px;background:linear-gradient(135deg,#ef2323 0 34%,#0f4cb5 34%);color:#fff;padding:18px;position:relative}
+      .badge{position:absolute;top:12px;right:12px;background:#4b7bff;border-radius:999px;padding:8px 12px;font-weight:700}
+      .thumb-title{font-size:clamp(1.6rem,6vw,3.5rem);font-weight:900;line-height:1.02;margin-top:24px}.feature-thumb p{margin:12px 0 0;font-size:1.8rem;font-weight:800}
+      .feature-footer{display:flex;justify-content:space-between;padding:14px 16px}.pill{border-radius:999px;border:none;padding:9px 16px;background:#10b981;color:#fff;font-weight:700}
+      .pill.link{background:#edf2ff;color:#2f55d4}
+      .blue-header{background:var(--blue);color:#fff;min-height:84px;display:flex;align-items:center;gap:8px;padding:0 18px}.blue-header h2{margin:0}.back{color:#fff}
+      .content-grid{padding:22px;display:grid;grid-template-columns:repeat(3,minmax(120px,1fr));gap:18px}
+      .content-card{border:1px solid #e5e7eb;min-height:145px;background:#fff;border-radius:22px;display:grid;place-items:center;font-size:1.8rem;cursor:pointer}
+      .content-card strong{display:block;font-size:1.35rem;margin-top:8px;color:#374151}
+      .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:999px;padding:10px;display:flex;gap:6px;width:min(92vw,420px);justify-content:space-evenly}
+      .nav-item{border:0;background:transparent;color:#8892a0;min-width:100px;border-radius:999px;padding:10px;font-weight:700;display:grid;gap:2px}
+      .nav-item.active{background:#2e5ee8;color:#fff}
+      @media (max-width:768px){.topbar{flex-wrap:wrap}.top-actions{width:100%;justify-content:flex-end}.content-grid{grid-template-columns:repeat(2,1fr)}}
+      @media (max-width:480px){.hero-banner{min-height:150px}.feature-thumb p{font-size:1.3rem}.content-grid{grid-template-columns:1fr}.chip{padding:8px 12px}}
+    </style>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="homeView" class="view active" aria-label="Home view">
+        <header class="topbar">
+          <div class="brand-wrap"><div class="brand-icon">🎓</div><h1>OdiGyan</h1></div>
+          <div class="top-actions"><button class="chip primary">⚙️ Admin</button><button class="chip">📚 Courses</button><button class="icon-btn" title="Logout">↪</button></div>
+        </header>
+        <section class="hero-banner"><div class="hero-text">🚀 Rising — Odisha's Best Learning Platform</div></section>
+        <section class="section-head"><h2>Featured Courses</h2><a href="#" id="openCourseContent">See all</a></section>
+        <article class="feature-card">
+          <div class="feature-thumb"><span class="badge">⚡ New</span><div class="thumb-title">GET YOUR HD<br/>YOUTUBE THUMBNAIL</div><p>OSSC</p></div>
+          <div class="feature-footer"><span class="pill">Free</span><button class="pill link">Detail</button></div>
+        </article>
+      </section>
+      <section id="courseView" class="view" aria-label="Course content view">
+        <header class="blue-header"><button id="backToHome" class="icon-btn back">←</button><h2>Course Content</h2></header>
+        <div class="content-grid">
+          <button class="content-card"><span>🎥</span><strong>Video</strong></button>
+          <button class="content-card"><span>📝</span><strong>Notes</strong></button>
+          <button class="content-card"><span>📋</span><strong>Mocktest</strong></button>
+          <button class="content-card"><span>📰</span><strong>Current Affairs</strong></button>
+          <button class="content-card"><span>📖</span><strong>Vocabs</strong></button>
+          <button class="content-card"><span>🏛️</span><strong>Static GK</strong></button>
+        </div>
+      </section>
+    </main>
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="Home">🏠<span>Home</span></button>
+      <button class="nav-item" data-tab="Courses">📚<span>Courses</span></button>
+      <button class="nav-item" data-tab="Profile">👤<span>Profile</span></button>
+    </nav>
+    <script>
+      const homeView = document.getElementById('homeView');
+      const courseView = document.getElementById('courseView');
+      const openCourseContent = document.getElementById('openCourseContent');
+      const backToHome = document.getElementById('backToHome');
+      const navItems = document.querySelectorAll('.nav-item');
+
+      function showHome(){homeView.classList.add('active');courseView.classList.remove('active')}
+      function showCourses(){courseView.classList.add('active');homeView.classList.remove('active')}
+
+      openCourseContent.addEventListener('click',(e)=>{e.preventDefault();showCourses()});
+      backToHome.addEventListener('click',showHome);
+      navItems.forEach((item)=>{item.addEventListener('click',()=>{
+        navItems.forEach((btn)=>btn.classList.remove('active')); item.classList.add('active');
+        if(item.dataset.tab==='Home') return showHome();
+        if(item.dataset.tab==='Courses') return showCourses();
+        alert('Profile screen demo ke liye abhi placeholder hai.');
+      })});
+    </script>
+  </body>
+</html>
