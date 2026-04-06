@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdiGyan - Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="homeView" class="view active" aria-label="Home view">
+        <header class="topbar">
+          <div class="brand-wrap">
+            <div class="brand-icon">🎓</div>
+            <h1>OdiGyan</h1>
+          </div>
+          <div class="top-actions">
+            <button class="chip primary">⚙️ Admin</button>
+            <button class="chip">📚 Courses</button>
+            <button class="icon-btn" title="Logout">↪</button>
+          </div>
+        </header>
+
+        <section class="hero-banner">
+          <div class="hero-text">🚀 Rising — Odisha's Best Learning Platform</div>
+        </section>
+
+        <section class="section-head">
+          <h2>Featured Courses</h2>
+          <a href="#" id="openCourseContent">See all</a>
+        </section>
+
+        <article class="feature-card">
+          <div class="feature-thumb">
+            <span class="badge">⚡ New</span>
+            <div class="thumb-title">GET YOUR HD<br />YOUTUBE THUMBNAIL</div>
+            <p>OSSC</p>
+          </div>
+          <div class="feature-footer">
+            <span class="pill">Free</span>
+            <button class="pill link">Detail</button>
+          </div>
+        </article>
+      </section>
+
+      <section id="courseView" class="view" aria-label="Course content view">
+        <header class="blue-header">
+          <button id="backToHome" class="icon-btn back">←</button>
+          <h2>Course Content</h2>
+        </header>
+
+        <div class="content-grid">
+          <button class="content-card"><span>🎥</span><strong>Video</strong></button>
+          <button class="content-card"><span>📝</span><strong>Notes</strong></button>
+          <button class="content-card"><span>📋</span><strong>Mocktest</strong></button>
+          <button class="content-card"><span>📰</span><strong>Current Affairs</strong></button>
+          <button class="content-card"><span>📖</span><strong>Vocabs</strong></button>
+          <button class="content-card"><span>🏛️</span><strong>Static GK</strong></button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="Home">🏠<span>Home</span></button>
+      <button class="nav-item" data-tab="Courses">📚<span>Courses</span></button>
+      <button class="nav-item" data-tab="Profile">👤<span>Profile</span></button>
+    </nav>
+
+    <script src="script.js"></script>
+  </body>
+</html>
