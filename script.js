@@ -54,6 +54,82 @@ const profileNavBtn = document.getElementById('profileNavBtn');
 const authBtn = document.getElementById('authBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const navItems = document.querySelectorAll('.nav-item');
+const courseCards = document.querySelectorAll('.course-card');
+
+const courseTitle = document.getElementById('courseTitle');
+const courseSubtitle = document.getElementById('courseSubtitle');
+const sectionCards = document.querySelectorAll('.content-card');
+const resourceHeading = document.getElementById('resourceHeading');
+const resourceForm = document.getElementById('resourceForm');
+const resourceList = document.getElementById('resourceList');
+const folderNameInput = document.getElementById('folderName');
+const folderUrlInput = document.getElementById('folderUrl');
+
+const profileModal = document.getElementById('profileModal');
+const profileForm = document.getElementById('profileForm');
+const studentNameInput = document.getElementById('studentName');
+const studentDobInput = document.getElementById('studentDob');
+const studentEmailInput = document.getElementById('studentEmail');
+const studentPhoneInput = document.getElementById('studentPhone');
+
+const adminUsersList = document.getElementById('adminUsersList');
+
+let selectedCourse = 'OSSC Foundation';
+let selectedSection = null;
+let currentUser = null;
+let unsubscribeResources = null;
+
+function activateTab(tabName) {
+  navItems.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+}
+
+const courseTitle = document.getElementById('courseTitle');
+const courseSubtitle = document.getElementById('courseSubtitle');
+const sectionCards = document.querySelectorAll('.content-card');
+const resourceHeading = document.getElementById('resourceHeading');
+const resourceForm = document.getElementById('resourceForm');
+const resourceList = document.getElementById('resourceList');
+const folderNameInput = document.getElementById('folderName');
+const folderUrlInput = document.getElementById('folderUrl');
+
+const profileModal = document.getElementById('profileModal');
+const profileForm = document.getElementById('profileForm');
+const studentNameInput = document.getElementById('studentName');
+const studentDobInput = document.getElementById('studentDob');
+const studentEmailInput = document.getElementById('studentEmail');
+const studentPhoneInput = document.getElementById('studentPhone');
+
+const adminUsersList = document.getElementById('adminUsersList');
+const courseForm = document.getElementById('courseForm');
+const newCourseNameInput = document.getElementById('newCourseName');
+const newCourseDescInput = document.getElementById('newCourseDesc');
+
+const ADMIN_EMAIL = 'bimbadharbaghel0@gmail.com';
+const DEFAULT_COURSES = [
+  { name: 'OSSC Foundation', desc: 'Videos + Notes + Mocktest', theme: 'red-blue', badge: '⚡ New' },
+  { name: 'Odisha GK Pro', desc: 'Daily Current Affairs', theme: 'green', badge: '🔥 Trending' },
+  { name: 'English Booster', desc: 'Vocab + Practice Sets', theme: 'violet', badge: '✅ Updated' },
+  { name: 'Static GK Master', desc: 'Chapterwise Cards', theme: 'yellow', badge: '📘 Core' },
+];
+
+let selectedCourse = DEFAULT_COURSES[0].name;
+let selectedSection = null;
+let currentUser = null;
+let unsubscribeResources = null;
+
+const courseGrid = document.getElementById('courseGrid');
+
+function isAdmin() {
+  return currentUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
+function activateTab(tabName) {
+  navItems.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+}
 
 const courseGrid = document.getElementById('courseGrid');
 const courseTitle = document.getElementById('courseTitle');
