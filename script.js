@@ -76,6 +76,52 @@ function activateTab(tabName) {
   });
 }
 
+const courseTitle = document.getElementById('courseTitle');
+const courseSubtitle = document.getElementById('courseSubtitle');
+const sectionCards = document.querySelectorAll('.content-card');
+const resourceHeading = document.getElementById('resourceHeading');
+const resourceForm = document.getElementById('resourceForm');
+const resourceList = document.getElementById('resourceList');
+const folderNameInput = document.getElementById('folderName');
+const folderUrlInput = document.getElementById('folderUrl');
+
+const profileModal = document.getElementById('profileModal');
+const profileForm = document.getElementById('profileForm');
+const studentNameInput = document.getElementById('studentName');
+const studentDobInput = document.getElementById('studentDob');
+const studentEmailInput = document.getElementById('studentEmail');
+const studentPhoneInput = document.getElementById('studentPhone');
+
+const adminUsersList = document.getElementById('adminUsersList');
+const courseForm = document.getElementById('courseForm');
+const newCourseNameInput = document.getElementById('newCourseName');
+const newCourseDescInput = document.getElementById('newCourseDesc');
+
+const ADMIN_EMAIL = 'bimbadharbaghel0@gmail.com';
+const DEFAULT_COURSES = [
+  { name: 'OSSC Foundation', desc: 'Videos + Notes + Mocktest', theme: 'red-blue', badge: '⚡ New' },
+  { name: 'Odisha GK Pro', desc: 'Daily Current Affairs', theme: 'green', badge: '🔥 Trending' },
+  { name: 'English Booster', desc: 'Vocab + Practice Sets', theme: 'violet', badge: '✅ Updated' },
+  { name: 'Static GK Master', desc: 'Chapterwise Cards', theme: 'yellow', badge: '📘 Core' },
+];
+
+let selectedCourse = DEFAULT_COURSES[0].name;
+let selectedSection = null;
+let currentUser = null;
+let unsubscribeResources = null;
+
+const courseGrid = document.getElementById('courseGrid');
+
+function isAdmin() {
+  return currentUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
+function activateTab(tabName) {
+  navItems.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+}
+
 function showHome() {
   homeView.classList.add('active');
   courseView.classList.remove('active');
@@ -91,10 +137,30 @@ function showCourses() {
 }
 
 function showAdmin() {
+  if (!isAdmin()) {
+    alert('Admin panel sirf bimbadharbaghel0@gmail.com login par khulega.');
+    return;
+  }
+
   homeView.classList.remove('active');
   courseView.classList.remove('active');
   adminView.classList.add('active');
   activateTab('Profile');
+}
+
+function renderCourseCard(courseData) {
+  const wrapper = document.createElement('article');
+  wrapper.className = 'course-card';
+  wrapper.dataset.course = courseData.name;
+  wrapper.innerHTML = `
+    <div class="course-thumb ${courseData.theme || 'red-blue'}"><span class="badge">${courseData.badge || '📘 Course'}</span></div>
+    <div class="course-body">
+      <h3>${courseData.name}</h3>
+      <p>${courseData.desc}</p>
+    </div>
+  `;
+  wrapper.addEventListener('click', () => setCourse(courseData.name));
+  return wrapper;
 }
 
 function renderResourceCard(docItem) {
@@ -148,6 +214,10 @@ function setCourse(courseName) {
 }
 
 async function ensureProfile(user) {
+  if (user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+    return;
+  }
+
   const studentsRef = collection(db, 'students');
   const existing = await getDocs(query(studentsRef, where('uid', '==', user.uid)));
 
@@ -169,10 +239,6 @@ backToHome.addEventListener('click', showHome);
 adminBtn.addEventListener('click', showAdmin);
 backFromAdmin.addEventListener('click', showHome);
 
-courseCards.forEach((card) => {
-  card.addEventListener('click', () => setCourse(card.dataset.course));
-});
-
 sectionCards.forEach((card) => {
   card.addEventListener('click', () => {
     sectionCards.forEach((btn) => btn.classList.remove('active'));
@@ -191,6 +257,11 @@ resourceForm.addEventListener('submit', async (event) => {
     return;
   }
 
+  if (!isAdmin()) {
+    alert('Section ke andar URL folder sirf admin add kar sakta hai.');
+    return;
+  }
+
   if (!selectedSection) {
     alert('Pehle koi section select karein.');
     return;
@@ -206,6 +277,26 @@ resourceForm.addEventListener('submit', async (event) => {
   });
 
   resourceForm.reset();
+});
+
+courseForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  if (!isAdmin()) {
+    alert('Sirf admin course bana sakta hai.');
+    return;
+  }
+
+  await addDoc(collection(db, 'courses'), {
+    name: newCourseNameInput.value.trim(),
+    desc: newCourseDescInput.value.trim(),
+    theme: 'red-blue',
+    badge: '🆕 New',
+    createdAt: serverTimestamp(),
+    createdBy: currentUser.email,
+  });
+
+  courseForm.reset();
 });
 
 profileForm.addEventListener('submit', async (event) => {
@@ -278,9 +369,23 @@ onSnapshot(query(collection(db, 'students'), orderBy('loggedInAt', 'desc')), (sn
   });
 });
 
+onSnapshot(query(collection(db, 'courses'), orderBy('createdAt', 'desc')), (snapshot) => {
+  const courses = snapshot.empty
+    ? DEFAULT_COURSES
+    : snapshot.docs.map((docItem) => ({ ...docItem.data(), id: docItem.id }));
+
+  courseGrid.innerHTML = '';
+  courses.forEach((courseData) => {
+    courseGrid.appendChild(renderCourseCard(courseData));
+  });
+});
+
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   authBtn.textContent = user ? `✅ ${user.email}` : '🔐 Google Login';
+  adminBtn.disabled = !isAdmin();
+  adminBtn.style.opacity = isAdmin() ? '1' : '0.65';
+  courseForm.style.display = isAdmin() ? 'grid' : 'none';
 
   if (user) {
     await ensureProfile(user);
