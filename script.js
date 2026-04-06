@@ -45,6 +45,36 @@ const backFromAdmin = document.getElementById('backFromAdmin');
 const authBtn = document.getElementById('authBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const navItems = document.querySelectorAll('.nav-item');
+const courseCards = document.querySelectorAll('.course-card');
+
+const courseTitle = document.getElementById('courseTitle');
+const courseSubtitle = document.getElementById('courseSubtitle');
+const sectionCards = document.querySelectorAll('.content-card');
+const resourceHeading = document.getElementById('resourceHeading');
+const resourceForm = document.getElementById('resourceForm');
+const resourceList = document.getElementById('resourceList');
+const folderNameInput = document.getElementById('folderName');
+const folderUrlInput = document.getElementById('folderUrl');
+
+const profileModal = document.getElementById('profileModal');
+const profileForm = document.getElementById('profileForm');
+const studentNameInput = document.getElementById('studentName');
+const studentDobInput = document.getElementById('studentDob');
+const studentEmailInput = document.getElementById('studentEmail');
+const studentPhoneInput = document.getElementById('studentPhone');
+
+const adminUsersList = document.getElementById('adminUsersList');
+
+let selectedCourse = 'OSSC Foundation';
+let selectedSection = null;
+let currentUser = null;
+let unsubscribeResources = null;
+
+function activateTab(tabName) {
+  navItems.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+}
 
 const courseTitle = document.getElementById('courseTitle');
 const courseSubtitle = document.getElementById('courseSubtitle');
