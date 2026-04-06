@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'bimbadharbaghel0@gmail.com';
+    }
+
+    match /students/{studentDoc} {
+      allow create: if isSignedIn()
+        && request.resource.data.email == request.auth.token.email;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /courses/{courseDoc} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /courseNodes/{nodeDoc} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}

@@ -89,6 +89,10 @@ body {
   opacity: 0.7;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .icon-btn {
   border: 0;
   background: transparent;
@@ -269,6 +273,29 @@ body {
   padding: 10px;
 }
 
+.resource-form select {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+
+.folder-path {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+#folderPathText {
+  background: #eef2ff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  color: #1e3a8a;
+}
+
 .resource-list,
 .admin-users-list {
   display: grid;
@@ -280,6 +307,14 @@ body {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 10px;
+  background: #fff;
+  transition: 180ms ease;
+}
+
+.resource-item:hover {
+  transform: translateY(-1px);
+  border-color: #c7d2fe;
+  box-shadow: 0 6px 14px rgb(30 64 175 / 10%);
 }
 
 .resource-item a {

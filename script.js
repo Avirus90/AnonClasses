@@ -27,6 +27,14 @@ const firebaseConfig = {
   appId: '1:25985064791:web:b935dbf321dbc0b2c5e812',
 };
 
+const ADMIN_EMAIL = 'bimbadharbaghel0@gmail.com';
+const DEFAULT_COURSES = [
+  { name: 'OSSC Foundation', desc: 'Videos + Notes + Mocktest', theme: 'red-blue', badge: '⚡ New' },
+  { name: 'Odisha GK Pro', desc: 'Daily Current Affairs', theme: 'green', badge: '🔥 Trending' },
+  { name: 'English Booster', desc: 'Vocab + Practice Sets', theme: 'violet', badge: '✅ Updated' },
+  { name: 'Static GK Master', desc: 'Chapterwise Cards', theme: 'yellow', badge: '📘 Core' },
+];
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -41,6 +49,7 @@ const coursesBtn = document.getElementById('coursesBtn');
 const backToHome = document.getElementById('backToHome');
 const adminBtn = document.getElementById('adminBtn');
 const backFromAdmin = document.getElementById('backFromAdmin');
+const profileNavBtn = document.getElementById('profileNavBtn');
 
 const authBtn = document.getElementById('authBtn');
 const logoutBtn = document.getElementById('logoutBtn');
@@ -122,6 +131,56 @@ function activateTab(tabName) {
   });
 }
 
+const courseGrid = document.getElementById('courseGrid');
+const courseTitle = document.getElementById('courseTitle');
+const courseSubtitle = document.getElementById('courseSubtitle');
+const sectionCards = document.querySelectorAll('.content-card');
+const resourceHeading = document.getElementById('resourceHeading');
+const resourceForm = document.getElementById('resourceForm');
+const nodeTypeInput = document.getElementById('nodeType');
+const folderNameInput = document.getElementById('folderName');
+const folderUrlInput = document.getElementById('folderUrl');
+const resourceList = document.getElementById('resourceList');
+const goRootBtn = document.getElementById('goRootBtn');
+const goUpBtn = document.getElementById('goUpBtn');
+const folderPathText = document.getElementById('folderPathText');
+
+const profileModal = document.getElementById('profileModal');
+const profileForm = document.getElementById('profileForm');
+const studentNameInput = document.getElementById('studentName');
+const studentDobInput = document.getElementById('studentDob');
+const studentEmailInput = document.getElementById('studentEmail');
+const studentPhoneInput = document.getElementById('studentPhone');
+
+const adminUsersList = document.getElementById('adminUsersList');
+const courseForm = document.getElementById('courseForm');
+const newCourseNameInput = document.getElementById('newCourseName');
+const newCourseDescInput = document.getElementById('newCourseDesc');
+
+let selectedCourse = DEFAULT_COURSES[0].name;
+let selectedSection = null;
+let currentUser = null;
+let currentFolderId = 'root';
+let allCurrentNodes = [];
+let unsubscribeNodes = null;
+
+function isAdmin() {
+  return currentUser?.email?.toLowerCase() === ADMIN_EMAIL;
+}
+
+function updateAdminVisibility() {
+  const showAdmin = isAdmin();
+  adminBtn.classList.toggle('hidden', !showAdmin);
+  profileNavBtn.classList.toggle('hidden', !showAdmin);
+  courseForm.style.display = showAdmin ? 'grid' : 'none';
+}
+
+function activateTab(tabName) {
+  navItems.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+}
+
 function showHome() {
   homeView.classList.add('active');
   courseView.classList.remove('active');
@@ -138,7 +197,6 @@ function showCourses() {
 
 function showAdmin() {
   if (!isAdmin()) {
-    alert('Admin panel sirf bimbadharbaghel0@gmail.com login par khulega.');
     return;
   }
 
@@ -156,65 +214,121 @@ function renderCourseCard(courseData) {
     <div class="course-thumb ${courseData.theme || 'red-blue'}"><span class="badge">${courseData.badge || '📘 Course'}</span></div>
     <div class="course-body">
       <h3>${courseData.name}</h3>
-      <p>${courseData.desc}</p>
+      <p>${courseData.desc || ''}</p>
     </div>
   `;
   wrapper.addEventListener('click', () => setCourse(courseData.name));
   return wrapper;
 }
 
-function renderResourceCard(docItem) {
-  const item = docItem.data();
+function getFolderNameById(folderId) {
+  if (!folderId || folderId === 'root') {
+    return 'Root';
+  }
+  return allCurrentNodes.find((item) => item.id === folderId)?.title || 'Folder';
+}
+
+function buildPathTitles(folderId) {
+  const titles = ['Root'];
+  let cursor = folderId;
+
+  while (cursor && cursor !== 'root') {
+    const node = allCurrentNodes.find((item) => item.id === cursor);
+    if (!node) {
+      break;
+    }
+    titles.unshift(node.title);
+    cursor = node.parentId || 'root';
+  }
+
+  return titles;
+}
+
+function renderNodeItem(node) {
   const wrapper = document.createElement('article');
   wrapper.className = 'resource-item';
-  wrapper.innerHTML = `
-    <strong>📁 ${item.folderName}</strong>
-    <p>${item.section} • ${item.courseName}</p>
-    <a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.url}</a>
-  `;
+
+  if (node.type === 'folder') {
+    wrapper.innerHTML = `<strong>📁 ${node.title}</strong><p>Open folder</p>`;
+    wrapper.addEventListener('click', () => {
+      currentFolderId = node.id;
+      renderCurrentFolder();
+    });
+  } else {
+    wrapper.innerHTML = `
+      <strong>🔗 ${node.title}</strong>
+      <a href="${node.url}" target="_blank" rel="noopener noreferrer">${node.url}</a>
+    `;
+  }
+
   return wrapper;
 }
 
-function watchResources() {
-  if (!selectedSection) {
-    resourceList.innerHTML = '';
+function renderCurrentFolder() {
+  const visibleNodes = allCurrentNodes.filter((node) => (node.parentId || 'root') === currentFolderId);
+  const path = buildPathTitles(currentFolderId);
+  folderPathText.textContent = `Path: ${path.join(' / ')}`;
+
+  resourceList.innerHTML = '';
+
+  if (!visibleNodes.length) {
+    resourceList.innerHTML = '<div class="resource-item">Folder empty hai. Naya folder ya URL add karein.</div>';
     return;
   }
 
-  if (unsubscribeResources) {
-    unsubscribeResources();
+  visibleNodes
+    .sort((a, b) => a.type.localeCompare(b.type) || a.title.localeCompare(b.title))
+    .forEach((node) => {
+      resourceList.appendChild(renderNodeItem(node));
+    });
+}
+
+function watchCourseNodes() {
+  if (!selectedSection) {
+    allCurrentNodes = [];
+    renderCurrentFolder();
+    return;
   }
 
-  const resourcesQuery = query(
-    collection(db, 'courseResources'),
+  if (unsubscribeNodes) {
+    unsubscribeNodes();
+  }
+
+  const nodesQuery = query(
+    collection(db, 'courseNodes'),
     where('courseName', '==', selectedCourse),
     where('section', '==', selectedSection),
     orderBy('createdAt', 'desc'),
   );
 
-  unsubscribeResources = onSnapshot(resourcesQuery, (snapshot) => {
-    resourceList.innerHTML = '';
-
-    if (snapshot.empty) {
-      resourceList.innerHTML = '<div class="resource-item">No folders yet. Add first URL folder.</div>';
-      return;
-    }
-
-    snapshot.forEach((docItem) => {
-      resourceList.appendChild(renderResourceCard(docItem));
-    });
-  });
+  unsubscribeNodes = onSnapshot(
+    nodesQuery,
+    (snapshot) => {
+      allCurrentNodes = snapshot.docs.map((docItem) => ({ id: docItem.id, ...docItem.data() }));
+      renderCurrentFolder();
+    },
+    () => {
+      allCurrentNodes = [];
+      resourceList.innerHTML = '<div class="resource-item">Data load nahi ho paya. Firestore rules check karein.</div>';
+    },
+  );
 }
 
 function setCourse(courseName) {
   selectedCourse = courseName;
+  selectedSection = null;
+  currentFolderId = 'root';
+  sectionCards.forEach((btn) => btn.classList.remove('active'));
   courseTitle.textContent = courseName;
-  courseSubtitle.textContent = '6 sections ke andar folder-style URL cards manage karein.';
+  courseSubtitle.textContent = 'Section select karke nested folders/URLs manage karein.';
+  resourceHeading.textContent = 'Select any section';
+  folderPathText.textContent = 'Path: Root';
+  resourceList.innerHTML = '<div class="resource-item">Section select karein.</div>';
   showCourses();
 }
 
 async function ensureProfile(user) {
-  if (user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+  if (user.email?.toLowerCase() === ADMIN_EMAIL) {
     return;
   }
 
@@ -244,39 +358,76 @@ sectionCards.forEach((card) => {
     sectionCards.forEach((btn) => btn.classList.remove('active'));
     card.classList.add('active');
     selectedSection = card.dataset.section;
+    currentFolderId = 'root';
     resourceHeading.textContent = `${selectedCourse} • ${selectedSection}`;
-    watchResources();
+    watchCourseNodes();
   });
+});
+
+nodeTypeInput.addEventListener('change', () => {
+  folderUrlInput.required = nodeTypeInput.value === 'url';
+  folderUrlInput.disabled = nodeTypeInput.value === 'folder';
+  if (nodeTypeInput.value === 'folder') {
+    folderUrlInput.value = '';
+  }
+});
+nodeTypeInput.dispatchEvent(new Event('change'));
+
+goRootBtn.addEventListener('click', () => {
+  currentFolderId = 'root';
+  renderCurrentFolder();
+});
+
+goUpBtn.addEventListener('click', () => {
+  if (currentFolderId === 'root') {
+    return;
+  }
+  const currentFolder = allCurrentNodes.find((item) => item.id === currentFolderId);
+  currentFolderId = currentFolder?.parentId || 'root';
+  renderCurrentFolder();
 });
 
 resourceForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  if (!currentUser) {
-    alert('Pehle Google login karein.');
-    return;
-  }
-
   if (!isAdmin()) {
-    alert('Section ke andar URL folder sirf admin add kar sakta hai.');
+    alert('Yeh action sirf admin ke liye hai.');
     return;
   }
 
   if (!selectedSection) {
-    alert('Pehle koi section select karein.');
+    alert('Pehle section select karein.');
     return;
   }
 
-  await addDoc(collection(db, 'courseResources'), {
+  const nodeType = nodeTypeInput.value;
+  const title = folderNameInput.value.trim();
+  const url = folderUrlInput.value.trim();
+
+  if (!title) {
+    alert('Title mandatory hai.');
+    return;
+  }
+
+  if (nodeType === 'url' && !url) {
+    alert('URL mandatory hai.');
+    return;
+  }
+
+  await addDoc(collection(db, 'courseNodes'), {
     courseName: selectedCourse,
     section: selectedSection,
-    folderName: folderNameInput.value.trim(),
-    url: folderUrlInput.value.trim(),
+    type: nodeType,
+    title,
+    url: nodeType === 'url' ? url : null,
+    parentId: currentFolderId,
     createdByEmail: currentUser.email,
     createdAt: serverTimestamp(),
   });
 
   resourceForm.reset();
+  nodeTypeInput.value = 'folder';
+  nodeTypeInput.dispatchEvent(new Event('change'));
 });
 
 courseForm.addEventListener('submit', async (event) => {
@@ -303,7 +454,6 @@ profileForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
   if (!currentUser) {
-    alert('Session missing. Please login again.');
     return;
   }
 
@@ -330,7 +480,6 @@ authBtn.addEventListener('click', async () => {
 
 logoutBtn.addEventListener('click', async () => {
   if (!currentUser) {
-    alert('Already logged out.');
     return;
   }
   await signOut(auth);
@@ -352,40 +501,53 @@ navItems.forEach((item) => {
   });
 });
 
-onSnapshot(query(collection(db, 'students'), orderBy('loggedInAt', 'desc')), (snapshot) => {
-  adminUsersList.innerHTML = '';
+onSnapshot(
+  query(collection(db, 'students'), orderBy('loggedInAt', 'desc')),
+  (snapshot) => {
+    adminUsersList.innerHTML = '';
 
-  if (snapshot.empty) {
-    adminUsersList.innerHTML = '<div class="admin-user-item">No student login records yet.</div>';
-    return;
-  }
+    if (snapshot.empty) {
+      adminUsersList.innerHTML = '<div class="admin-user-item">No student login records yet.</div>';
+      return;
+    }
 
-  snapshot.forEach((docItem) => {
-    const item = docItem.data();
-    const node = document.createElement('article');
-    node.className = 'admin-user-item';
-    node.innerHTML = `<strong>${item.name || 'Student'}</strong><p>${item.email}</p><small>${item.phone || '-'}</small>`;
-    adminUsersList.appendChild(node);
-  });
-});
+    snapshot.forEach((docItem) => {
+      const item = docItem.data();
+      const node = document.createElement('article');
+      node.className = 'admin-user-item';
+      node.innerHTML = `<strong>${item.name || 'Student'}</strong><p>${item.email}</p><small>${item.phone || '-'}</small>`;
+      adminUsersList.appendChild(node);
+    });
+  },
+  () => {
+    adminUsersList.innerHTML = '<div class="admin-user-item">Student list load nahi ho paayi. Rules check karein.</div>';
+  },
+);
 
-onSnapshot(query(collection(db, 'courses'), orderBy('createdAt', 'desc')), (snapshot) => {
-  const courses = snapshot.empty
-    ? DEFAULT_COURSES
-    : snapshot.docs.map((docItem) => ({ ...docItem.data(), id: docItem.id }));
+onSnapshot(
+  query(collection(db, 'courses'), orderBy('createdAt', 'desc')),
+  (snapshot) => {
+    const courses = snapshot.empty
+      ? DEFAULT_COURSES
+      : snapshot.docs.map((docItem) => ({ ...docItem.data(), id: docItem.id }));
 
-  courseGrid.innerHTML = '';
-  courses.forEach((courseData) => {
-    courseGrid.appendChild(renderCourseCard(courseData));
-  });
-});
+    courseGrid.innerHTML = '';
+    courses.forEach((courseData) => {
+      courseGrid.appendChild(renderCourseCard(courseData));
+    });
+  },
+  () => {
+    courseGrid.innerHTML = '';
+    DEFAULT_COURSES.forEach((courseData) => {
+      courseGrid.appendChild(renderCourseCard(courseData));
+    });
+  },
+);
 
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   authBtn.textContent = user ? `✅ ${user.email}` : '🔐 Google Login';
-  adminBtn.disabled = !isAdmin();
-  adminBtn.style.opacity = isAdmin() ? '1' : '0.65';
-  courseForm.style.display = isAdmin() ? 'grid' : 'none';
+  updateAdminVisibility();
 
   if (user) {
     await ensureProfile(user);
